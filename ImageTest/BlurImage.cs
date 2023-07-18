@@ -11,7 +11,7 @@ namespace ImageTest
             using Bitmap inputImage = new Bitmap("..\\..\\..\\image.jpg");
             using Bitmap outputImage = new Bitmap(inputImage.Width, inputImage.Height);
 
-            Console.WriteLine("Введите размерность матрицы размытия: ");
+            Console.WriteLine("Введите размерность матрицы размытия:");
             int matrixDimension = Convert.ToInt32(Console.ReadLine());
 
             double[,] matrix = new double[matrixDimension, matrixDimension];
@@ -39,25 +39,21 @@ namespace ImageTest
                     double greenSum = 0;
                     double blueSum = 0;
 
-                    for (int i = y - shiftAroundPixel, k = 0; i <= y + shiftAroundPixel; i++, k++)
+                    for (int adjacentPixelY = y - shiftAroundPixel, i = 0; adjacentPixelY <= y + shiftAroundPixel; adjacentPixelY++, i++)
                     {
-                        for (int j = x - shiftAroundPixel, m = 0; j <= x + shiftAroundPixel; j++, m++)
+                        for (int adjacentPixelX = x - shiftAroundPixel, j = 0; adjacentPixelX <= x + shiftAroundPixel; adjacentPixelX++, j++)
                         {
-                            Color pixel = inputImage.GetPixel(j, i);
+                            Color pixel = inputImage.GetPixel(adjacentPixelX, adjacentPixelY);
 
-                            double red = pixel.R * matrix[k, m];
-                            double green = pixel.G * matrix[k, m];
-                            double blue = pixel.B * matrix[k, m];
-
-                            redSum += red;
-                            greenSum += green;
-                            blueSum += blue;
+                            redSum += pixel.R * matrix[i, j];
+                            greenSum += pixel.G * matrix[i, j];
+                            blueSum += pixel.B * matrix[i, j];
                         }
                     }
 
-                    int outputRed = GetOutputComponentValue((int)Math.Round(redSum, MidpointRounding.AwayFromZero));
-                    int outputGreen = GetOutputComponentValue((int)Math.Round(greenSum, MidpointRounding.AwayFromZero));
-                    int outputBlue = GetOutputComponentValue((int)Math.Round(blueSum, MidpointRounding.AwayFromZero));
+                    int outputRed = GetSaturatedComponent(redSum);
+                    int outputGreen = GetSaturatedComponent(greenSum);
+                    int outputBlue = GetSaturatedComponent(blueSum);
 
                     Color newPixel = Color.FromArgb(outputRed, outputGreen, outputBlue);
 
@@ -68,18 +64,19 @@ namespace ImageTest
             outputImage.Save("..\\..\\..\\out.jpg", ImageFormat.Jpeg);
         }
 
-        public static int GetOutputComponentValue(int inputComponentValue)
+        public static int GetSaturatedComponent(double component)
         {
-            if (inputComponentValue < 0)
+            if (component <= 0)
             {
                 return 0;
             }
-            if (inputComponentValue > 255)
+
+            if (component >= 255)
             {
                 return 255;
             }
 
-            return inputComponentValue;
+            return (int)Math.Round(component, MidpointRounding.AwayFromZero);
         }
     }
 }
